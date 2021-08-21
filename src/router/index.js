@@ -6,6 +6,7 @@ import { AuthState, onAuthUIStateChange } from "@aws-amplify/ui-components";
 
 import SignIn from "../views/SignIn.vue";
 import Index from "../views/Index.vue";
+import Portfolio from "../views/Portfolio.vue";
 
 const routes = [
   {
@@ -22,6 +23,11 @@ const routes = [
     name: "Index",
     component: Index,
     meta: { requireAuth: true }
+  },
+  {
+    path: "/portfolio",
+    name: "Portfolio",
+    component: Portfolio
   }
 ]
 

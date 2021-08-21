@@ -10,6 +10,7 @@
   "dependencies": {
     "@aws-amplify/ui-components": "^1.7.3",
     "aws-amplify": "^4.2.4",
+    "chart.js": "^3.5.1",
     "core-js": "^3.6.5",
     "vue": "^3.0.0",
     "vue-router": "^4.0.0-0",
