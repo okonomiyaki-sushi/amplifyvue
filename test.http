@@ -1,6 +1,0 @@
-
-POST https://3mmc2xc5g1.execute-api.ap-northeast-1.amazonaws.com/dev/api HTTP/1.1
-content-type: application/json
-
-{
-}
