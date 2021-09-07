@@ -1,71 +1,103 @@
 <template>
-  <canvas id="chart"></canvas>
+  <div class="row">
+    <div class="col-sm-12">
+      <div id="chart_main" style="width: 800px;">
+        <canvas id="line_chart"></canvas>
+        <button id="download_button" class="btn-square-pop">Line chart DL</button>
+        <a id="download_link"></a>
+      </div>
+    </div>
+  </div>
+  <div id="pie_chart_main" class="row mt-2">
+  </div>
 </template>
 
 <script>
 
 import Chart from 'chart.js/auto';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import axios from 'axios'
+Chart.register(ChartDataLabels);
 
 export default {
   methods: {
     async renderChart() {
-      let ctx = document.getElementById("chart");
+      const line_chart = document.getElementById("line_chart");
       
       // データ取得
-      const res = await axios.post(
-        " https://4wh091rfdc.execute-api.ap-northeast-1.amazonaws.com/dev",
-        {},
-        {
-          "headers": {"x-api-key": "x-api-key"}
+      const chart_data = await axios.post("https://qylg.miruo.net/api");
+      
+      // 持ち株(折れ線)グラフ
+      new Chart(line_chart, chart_data.data.body.line_chart);
+
+      // ダウンロード
+      const button = document.getElementById('download_button');
+      const downloadLink = document.getElementById('download_link');
+      button.addEventListener('click', function(){
+        downloadLink.href = line_chart.toDataURL('image/png');
+        downloadLink.download = 'chart.png';
+        downloadLink.click();
+      });
+
+      // 円グラフ
+      const pie_chart_main = document.getElementById("pie_chart_main");
+      // チームごとにループ
+      const pie_charts = chart_data.data.body.pie_charts;
+      const pie_charts_length = pie_charts.length;
+      for(let i=0; i < pie_charts_length; i++){
+        const new_chart = document.createElement('canvas')
+        const chart_id = 'pie_chart_' + i
+        const new_div = document.createElement('div')
+        new_div.id = chart_id + '_d'
+        new_div.setAttribute('class', 'col-sm-3 p-2')
+        pie_chart_main.appendChild(new_div);
+        const chart_div = document.getElementById(chart_id + '_d');
+        new_chart.id = chart_id;
+        chart_div.appendChild(new_chart);
+        const pie_chart = document.getElementById(chart_id);
+        // 値を常に表示
+        pie_charts[i].options.plugins.datalabels.formatter = (value, ctx) => {
+            const label = ctx.chart.data.labels[ctx.dataIndex];
+            const datasets_data = ctx.chart.data.datasets[0].data;
+            const stock_list = ctx.chart.options.plugins.stock_list;
+            const have_stocks = stock_list[label];
+            const total = datasets_data.reduce(function(sum, element){
+              return sum + Number(element);
+            }, 0);
+            const ratio = Math.floor(value / total * 10000) / 100;
+            // ティッカー 金額 持ち株数 比率 を表示
+            return label + '\n\\' + String(value).replace( /(\d)(?=(\d\d\d)+(?!\d))/g, '$1,') + '\n' + have_stocks + 'shares' + '\n' + ratio + '%';
         }
-      );
-      new Chart(ctx, res.data.body);
-      // Example
-      // {
-      //   type: 'line',
-      //   data:{
-      //     labels: ["6/1","6/2","6/3","6/4","6/5","6/6","6/7","6/8","6/9","6/10","6/11","6/12","6/13","6/14","6/15","6/16","6/17","6/18","6/19","6/20","6/21","6/22","6/23","6/24","6/25","6/26","6/27","6/28","6/29","6/30","6/31","7/1","7/2","7/3","7/4","7/5","7/6","7/7","7/8","7/9","7/10","7/11","7/12","7/13","7/14","7/15","7/16","7/17","7/18","7/19","7/20","7/21","7/22","7/23","7/24","7/25","7/26","7/27","7/28","7/29","7/30","7/31","8/1","8/2","8/3","8/4","8/5","8/6","8/7","8/8","8/9","8/10","8/11","8/12","8/13","8/14","8/15","8/16","8/17","8/18","8/19","8/20","8/21","8/22","8/23","8/24","8/25","8/26","8/27","8/28","8/29","8/30","8/31"],
-      //     datasets: [
-      //       {
-      //         label: 'チームA',
-      //         data: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],
-      //         borderWidth: 1,
-      //         backgroundColor: [
-      //           'rgba(255, 99, 132, 0.2)'
-      //         ],
-      //         borderColor: [
-      //           'rgba(255,99,132,1)'
-      //         ],
-      //       
-      //       },
-      //       {
-      //         label: 'チームB',
-      //         data: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93],
-      //         borderWidth: 1,
-      //         backgroundColor: [
-      //           'rgba(54, 162, 235, 0.2)'
-      //         ],
-      //         borderColor: [
-      //           'rgba(54, 162, 235, 1)'
-      //         ],
-      //       },
-      //     ]
-      //   },
-      //   options: {
-      //     scales: {
-      //       yAxes: [{
-      //         ticks: {
-      //           beginAtZero:true
-      //         }
-      //       }]
-      //     }
-      //   }
-      // }
+        // ドーナツチャート表示
+        new Chart(pie_chart, pie_charts[i]);
+
+      }
     }
   },
   mounted() {
     this.renderChart();
   }
 };
+
 </script>
+
+<style scoped>
+.btn-square-pop {
+  position: relative;
+  display: inline-block;
+  padding: 0.25em 0.5em;
+  text-decoration: none;
+  color: #FFF;
+  background: #fd9535;
+  border-bottom: solid 2px #d27d00;
+  border-radius: 4px;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,0.2), 0 2px 2px rgba(0, 0, 0, 0.19);
+  font-weight: bold;
+}
+
+.btn-square-pop:active {
+  border-bottom: solid 2px #fd9535;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.30);
+}
+
+</style>

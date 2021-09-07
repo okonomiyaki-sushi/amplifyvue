@@ -1,7 +1,5 @@
 <template>
-  <div>
-    <Chart></Chart>
-  </div>
+  <Chart></Chart>
 </template>
 
 <script>
@@ -13,3 +11,4 @@ export default {
   },
 }
 </script>
+
