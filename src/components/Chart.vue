@@ -1,8 +1,9 @@
 <template>
   <div class="row">
     <div class="col-sm-12">
-      <div id="comp_table" style="width: 800px;">
+      <div id="comp_table" style="width: 1000px;">
       </div>
+      <button id="table_download_button" class="btn-square-pop d-none"><i class="fas fa-download"></i></button>
     </div>
   </div>
   <div class="row">
@@ -33,6 +34,8 @@
 import { Grid } from "gridjs";
 import "gridjs/dist/theme/mermaid.css";
 
+import html2canvas from 'html2canvas';
+
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import axios from 'axios'
@@ -50,22 +53,38 @@ export default {
       if(response.data.statusCode == 200){
         // 前日比比較表
         const table_data = response.data.body.line_chart.data.datasets.reduce(function (accumulator, currentValue) {
+          const first_value = Math.floor(currentValue.data[0])
           const yesterday_value = Math.floor(currentValue.data.slice(-3)[0])
           const today_value = Math.floor(currentValue.data.slice(-2)[0])
           const difference = today_value - yesterday_value
           const comparison = Math.floor(((today_value / yesterday_value) - 1) * 10000) / 100
+          const profit_and_loss = today_value - first_value
+          const pal_comparison = Math.floor(((today_value / first_value) - 1) * 10000) / 100
           const plusminus = comparison > 0 ? "+" : ""
+          const pal_plusminus = pal_comparison > 0 ? "+" : ""
           accumulator.data.push([
             currentValue.label,
             String(yesterday_value).replace( /(\d)(?=(\d\d\d)+(?!\d))/g, '$1,'),
             String(today_value).replace( /(\d)(?=(\d\d\d)+(?!\d))/g, '$1,'),
             String(difference).replace( /(\d)(?=(\d\d\d)+(?!\d))/g, '$1,') + "(" + plusminus + comparison + '%' + ")",
+            String(profit_and_loss).replace( /(\d)(?=(\d\d\d)+(?!\d))/g, '$1,') + "(" + pal_plusminus + pal_comparison + '%' + ")",
           ])
           return accumulator
         }, {data:[]})
+        
+        // テーブルを画像でダウンロード
+        const table_download_button = document.getElementById("table_download_button");
+        table_download_button.addEventListener("click",() => {
+          html2canvas(document.querySelector("#comp_table")).then(canvas => { 
+              let downloadEle = document.createElement("a");
+              downloadEle.href = canvas.toDataURL("image/png");
+              downloadEle.download = "table.png";
+              downloadEle.click();
+          });
+        })
 
         new Grid({
-          columns: ["team", "yesterday", "today", "difference"],
+          columns: ["team", "yesterday", "today", "difference", "profit and loss"],
           sort: true,
           data: table_data.data,
             style: {
@@ -84,6 +103,33 @@ export default {
               }
             }
         }).render(document.getElementById("comp_table"));
+        
+        // グリッドの値が取得できない場合があるのでスリープ
+        const _sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+        await _sleep(100);
+        // 前日比、当初比の色変更
+        const comp_table_body = document.querySelectorAll("#comp_table tbody");
+        for(let i = 0;i < comp_table_body[0].children.length;i++){
+          const columns = comp_table_body[0].children[i].children
+          // 前日比
+          if(columns[3].innerText.includes('+')){
+            // プラスの場合
+            columns[3].style.color = "red"
+          }
+          else{
+            // マイナスの場合
+            columns[3].style.color = "green"
+          }
+          // 当初比
+          if(columns[4].innerText.includes('+')){
+            // プラスの場合
+            columns[4].style.color = "red"
+          }
+          else{
+            // マイナスの場合
+            comp_table_body[0].children[i].children[4].style.color = "green"
+          }
+        }
 
         const line_plugin = {
           beforeDraw: (chart) => {
@@ -210,6 +256,7 @@ export default {
         }
           
         // ダウンロードボタン表示
+        table_download_button.classList.remove('d-none');
         button.classList.remove('d-none');
         button2.classList.remove('d-none');
         // 背景色変更
