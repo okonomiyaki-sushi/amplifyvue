@@ -5,6 +5,10 @@ import store from './store'
 
 import "bootstrap/dist/css/bootstrap.min.css"
 
+import '@fortawesome/fontawesome-free/js/fontawesome';
+import '@fortawesome/fontawesome-free/js/solid';
+import '@fortawesome/fontawesome-free/js/regular';
+
 import Amplify from 'aws-amplify';
 import aws_exports from './aws-exports';
 import {

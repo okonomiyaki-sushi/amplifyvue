@@ -1,22 +1,42 @@
 <template>
   <div class="row">
     <div class="col-sm-12">
-      <div id="chart_main" style="width: 800px;">
+      <div id="comp_table" style="width: 800px;">
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-sm-12">
+      <div id="line_chart_main" style="width: 800px;">
         <canvas id="line_chart"></canvas>
-        <button id="download_button" class="btn-square-pop">Line chart DL</button>
+        <button id="download_button" class="btn-square-pop d-none"><i class="fas fa-download"></i></button>
         <a id="download_link"></a>
       </div>
     </div>
   </div>
+  <div id="dividend_chart_main" class="row mt-2">
+    <div class="col-sm-12">
+      <div style="width: 800px;">
+        <canvas id="dividend_chart"></canvas>
+        <button id="download_button2" class="btn-square-pop d-none"><i class="fas fa-download"></i></button>
+        <a id="download_link2"></a>
+      </div>
+    </div>
+  </div>
   <div id="pie_chart_main" class="row mt-2">
+    <a id="pie_dl_link"></a>
   </div>
 </template>
 
 <script>
 
+import { Grid } from "gridjs";
+import "gridjs/dist/theme/mermaid.css";
+
 import Chart from 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import axios from 'axios'
+
 Chart.register(ChartDataLabels);
 
 export default {
@@ -25,51 +45,175 @@ export default {
       const line_chart = document.getElementById("line_chart");
       
       // データ取得
-      const chart_data = await axios.post("https://qylg.miruo.net/api");
+      const response = await axios.post("https://qylg.miruo.net/api");
       
-      // 持ち株(折れ線)グラフ
-      new Chart(line_chart, chart_data.data.body.line_chart);
+      if(response.data.statusCode == 200){
+        // 前日比比較表
+        const table_data = response.data.body.line_chart.data.datasets.reduce(function (accumulator, currentValue) {
+          const yesterday_value = Math.floor(currentValue.data.slice(-3)[0])
+          const today_value = Math.floor(currentValue.data.slice(-2)[0])
+          const difference = today_value - yesterday_value
+          const comparison = Math.floor(((today_value / yesterday_value) - 1) * 10000) / 100
+          const plusminus = comparison > 0 ? "+" : ""
+          accumulator.data.push([
+            currentValue.label,
+            String(yesterday_value).replace( /(\d)(?=(\d\d\d)+(?!\d))/g, '$1,'),
+            String(today_value).replace( /(\d)(?=(\d\d\d)+(?!\d))/g, '$1,'),
+            String(difference).replace( /(\d)(?=(\d\d\d)+(?!\d))/g, '$1,') + "(" + plusminus + comparison + '%' + ")",
+          ])
+          return accumulator
+        }, {data:[]})
 
-      // ダウンロード
-      const button = document.getElementById('download_button');
-      const downloadLink = document.getElementById('download_link');
-      button.addEventListener('click', function(){
-        downloadLink.href = line_chart.toDataURL('image/png');
-        downloadLink.download = 'chart.png';
-        downloadLink.click();
-      });
+        new Grid({
+          columns: ["team", "yesterday", "today", "difference"],
+          sort: true,
+          data: table_data.data,
+            style: {
+              table: {
+                'border': '1px solid #000'
+              },
+              th: {
+                'background-color': '#021A29',
+                'color': '#fff',
+                'border': '1px solid #000'
+              },
+              td: {
+                'background-color': '#000F17',
+                'border': '1px solid #000',
+                'color': '#A1B5C2'
+              }
+            }
+        }).render(document.getElementById("comp_table"));
 
-      // 円グラフ
-      const pie_chart_main = document.getElementById("pie_chart_main");
-      // チームごとにループ
-      const pie_charts = chart_data.data.body.pie_charts;
-      const pie_charts_length = pie_charts.length;
-      for(let i=0; i < pie_charts_length; i++){
-        const new_chart = document.createElement('canvas')
-        const chart_id = 'pie_chart_' + i
-        const new_div = document.createElement('div')
-        new_div.id = chart_id + '_d'
-        new_div.setAttribute('class', 'col-sm-3 p-2')
-        pie_chart_main.appendChild(new_div);
-        const chart_div = document.getElementById(chart_id + '_d');
-        new_chart.id = chart_id;
-        chart_div.appendChild(new_chart);
-        const pie_chart = document.getElementById(chart_id);
-        // 値を常に表示
-        pie_charts[i].options.plugins.datalabels.formatter = (value, ctx) => {
-            const label = ctx.chart.data.labels[ctx.dataIndex];
-            const datasets_data = ctx.chart.data.datasets[0].data;
-            const stock_list = ctx.chart.options.plugins.stock_list;
-            const have_stocks = stock_list[label];
-            const total = datasets_data.reduce(function(sum, element){
-              return sum + Number(element);
-            }, 0);
-            const ratio = Math.floor(value / total * 10000) / 100;
-            // ティッカー 金額 持ち株数 比率 を表示
-            return label + '\n\\' + String(value).replace( /(\d)(?=(\d\d\d)+(?!\d))/g, '$1,') + '\n' + have_stocks + 'shares' + '\n' + ratio + '%';
+        const line_plugin = {
+          beforeDraw: (chart) => {
+            const ctx = chart.canvas.getContext('2d');
+            ctx.save();
+            ctx.globalCompositeOperation = 'destination-over';
+            ctx.fillStyle = '#14202B';
+            ctx.fillRect(0, 0, chart.width, chart.height);
+            ctx.restore();
+          },
+          responsive: true,
+          usePointStyle: true
+        };
+        response.data.body.line_chart.plugins = [line_plugin]
+
+        // 持ち株(折れ線)グラフ
+        new Chart(line_chart, response.data.body.line_chart);
+
+        // ダウンロード
+        const button = document.getElementById('download_button');
+        const downloadLink = document.getElementById('download_link');
+        button.addEventListener('click', function(){
+          downloadLink.href = line_chart.toDataURL('image/png');
+          downloadLink.download = 'chart.png';
+          downloadLink.click();
+        });
+
+        const dividend_chart = document.getElementById("dividend_chart");
+        const dividend_plugin = {
+          beforeDraw: (chart) => {
+            const ctx = chart.canvas.getContext('2d');
+            ctx.save();
+            ctx.globalCompositeOperation = 'destination-over';
+            ctx.fillStyle = '#14202B';
+            ctx.fillRect(0, 0, chart.width, chart.height);
+            ctx.restore();
+          },
+          responsive: true
+        };
+        response.data.body.dividend_chart.plugins = [dividend_plugin]
+
+        // 集合棒グラフ
+        new Chart(dividend_chart, response.data.body.dividend_chart);
+        // ダウンロード
+        const button2 = document.getElementById('download_button2');
+        const downloadLink2 = document.getElementById('download_link2');
+        button2.addEventListener('click', function(){
+          downloadLink2.href = dividend_chart.toDataURL('image/png');
+          downloadLink2.download = 'chart.png';
+          downloadLink2.click();
+        });
+
+        // 円グラフ
+        const pie_chart_main = document.getElementById("pie_chart_main");
+        // チームごとにループ
+        const pie_charts = response.data.body.pie_charts;
+        const pie_charts_length = pie_charts.length;
+        for(let i=0; i < pie_charts_length; i++){
+          const chart_id = 'pie_chart_' + i
+          const div_id = chart_id + '_div'
+          const dl_btn_id = chart_id + '_btn'
+          
+          // 親div要素を作成
+          let new_div = document.createElement('div')
+          new_div.id = div_id
+          new_div.setAttribute('class', 'col-sm-3 p-2')
+          pie_chart_main.appendChild(new_div);
+          
+          // チャート追加
+          const new_chart = document.createElement('canvas')
+          new_chart.id = chart_id;
+          new_div.appendChild(new_chart);
+
+          // DLボタン追加
+          new_div = document.getElementById(div_id);
+          const dl_btn = document.createElement('button')
+          dl_btn.id = dl_btn_id
+          dl_btn.setAttribute('class', 'btn-square-pop')
+          new_div.appendChild(dl_btn);
+          
+          // 値を常に表示
+          pie_charts[i].options.plugins.datalabels.formatter = (value, ctx) => {
+              const label = ctx.chart.data.labels[ctx.dataIndex];
+              const datasets_data = ctx.chart.data.datasets[0].data;
+              const stock_list = ctx.chart.options.plugins.stock_list;
+              const have_stocks = stock_list[label];
+              const total = datasets_data.reduce(function(sum, element){
+                return sum + Number(element);
+              }, 0);
+              const ratio = Math.floor(value / total * 10000) / 100;
+              const unit = label == 'USDJPY' ? 'dollars' : 'shares'
+              // ティッカー 金額 持ち株数 比率 を表示
+              return label + '\n' + String(value).replace( /(\d)(?=(\d\d\d)+(?!\d))/g, '$1,') + 'yen' + '\n' + have_stocks + unit + '\n' + ratio + '%';
+          }
+
+          let pie_plugin = {
+            beforeDraw: (chart) => {
+              const ctx = chart.canvas.getContext('2d');
+              ctx.save();
+              ctx.globalCompositeOperation = 'destination-over';
+              ctx.fillStyle = '#14202B';
+              ctx.fillRect(0, 0, chart.width, chart.height);
+              ctx.restore();
+            }
+          };
+          pie_charts[i].plugins = [pie_plugin]
+
+          // ドーナツチャート表示
+          const pie_chart = document.getElementById(chart_id);
+          new Chart(pie_chart, pie_charts[i]);
+
+          // DLの設定
+          const btn = document.getElementById(dl_btn_id);
+          const icon = document.createElement('i') // アイコンを設定
+          icon.setAttribute('class', 'fas fa-download')
+          btn.appendChild(icon);
+          const pie_dl_link = document.getElementById('pie_dl_link');
+          btn.addEventListener('click', function(){
+            pie_dl_link.href = pie_chart.toDataURL('image/png');
+            pie_dl_link.download = 'chart.png';
+            pie_dl_link.click();
+          });
+
         }
-        // ドーナツチャート表示
-        new Chart(pie_chart, pie_charts[i]);
+          
+        // ダウンロードボタン表示
+        button.classList.remove('d-none');
+        button2.classList.remove('d-none');
+        // 背景色変更
+        document.getElementById('app').style.backgroundColor = '#14202B';
 
       }
     }
@@ -81,7 +225,7 @@ export default {
 
 </script>
 
-<style scoped>
+<style>
 .btn-square-pop {
   position: relative;
   display: inline-block;
@@ -99,5 +243,4 @@ export default {
   border-bottom: solid 2px #fd9535;
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.30);
 }
-
 </style>
