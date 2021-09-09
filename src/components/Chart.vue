@@ -7,7 +7,7 @@
   </div>
   <div class="row">
     <div class="col-sm-12">
-      <div id="comp_table" class="fade-in" style="width: 1000px;">
+      <div id="comp_table" class="" style="width: 1000px;">
       </div>
       <button id="table_download_button" class="btn-download d-none"><i class="fas fa-camera-retro"></i></button>
     </div>
@@ -87,17 +87,6 @@ export default {
           return accumulator
         }, {data:[]})
         
-        // テーブルを画像でダウンロード
-        const table_download_button = document.getElementById("table_download_button");
-        table_download_button.addEventListener("click",() => {
-          html2canvas(document.querySelector("#comp_table")).then(canvas => { 
-              let downloadEle = document.createElement("a");
-              downloadEle.href = canvas.toDataURL("image/png");
-              downloadEle.download = "table.png";
-              downloadEle.click();
-          });
-        })
-
         new Grid({
           columns: [
             {name: "team", width: '320px'},
@@ -152,10 +141,17 @@ export default {
           }
         }
         
-        // テーブルを表示
-        const comp_table = document.getElementById("comp_table")
-        comp_table.classList.remove('d-none');
-        
+        // テーブルを画像でダウンロード
+        const table_download_button = document.getElementById("table_download_button");
+        table_download_button.addEventListener("click",() => {
+          html2canvas(document.querySelector("#comp_table")).then(canvas => { 
+              let downloadEle = document.createElement("a");
+              downloadEle.href = canvas.toDataURL("image/png");
+              downloadEle.download = "table.png";
+              downloadEle.click();
+          });
+        })
+
         const line_plugin = {
           beforeDraw: (chart) => {
             const ctx = chart.canvas.getContext('2d');
@@ -298,14 +294,12 @@ export default {
 
 <style>
 .btn-download {
-  background-color: #000;
-  border: 1px solid #333;
+  background-color: #14202B;
   color: #E2E0E7;
   transition-duration: 0.5s;
 }
 .btn-download:hover {
-  background-color: #fff;
-  color: #000;
+  color: #fff;
 }
 
 .fade-in{ 
