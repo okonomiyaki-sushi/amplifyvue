@@ -1,5 +1,11 @@
 <template>
   <div class="row">
+    <img src="@/assets/img/0title.png" class="fade-in" alt="0title">
+  </div>
+  <div class="row">
+    <img src="@/assets/img/1lists.png" class="fade-in" alt="1lists">
+  </div>
+  <div class="row">
     <div class="col-sm-12">
       <div id="comp_table" class="fade-in" style="width: 1000px;">
       </div>
@@ -7,22 +13,31 @@
     </div>
   </div>
   <div class="row">
+    <img src="@/assets/img/2charts.png" class="fade-in" alt="2charts">
+  </div>
+  <div class="row">
     <div class="col-sm-12">
-      <div id="line_chart_main" style="width: 800px;">
+      <div id="line_chart_main" style="width: 1000px;">
         <canvas id="line_chart"></canvas>
         <button id="download_button" class="btn-download d-none"><i class="fas fa-camera-retro"></i></button>
         <a id="download_link"></a>
       </div>
     </div>
   </div>
+  <div class="row">
+    <img src="@/assets/img/3graph.png" class="fade-in" alt="3graph">
+  </div>
   <div id="dividend_chart_main" class="row mt-2">
     <div class="col-sm-12">
-      <div style="width: 800px;">
+      <div style="width: 1000px;">
         <canvas id="dividend_chart"></canvas>
         <button id="download_button2" class="btn-download d-none"><i class="fas fa-camera-retro"></i></button>
         <a id="download_link2"></a>
       </div>
     </div>
+  </div>
+  <div class="row">
+    <img src="@/assets/img/4portfolio.png" class="fade-in" alt="4portfolio">
   </div>
   <div id="pie_chart_main" class="row mt-2">
     <a id="pie_dl_link"></a>
@@ -295,7 +310,7 @@ export default {
 
 .fade-in{ 
   animation-name: fadein;
-  animation-duration:2s; 
+  animation-duration:3s; 
 }
 @keyframes fadein {
   0% {
