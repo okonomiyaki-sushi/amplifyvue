@@ -1,16 +1,16 @@
 <template>
   <div class="row">
     <div class="col-sm-12">
-      <div id="comp_table" style="width: 1000px;">
+      <div id="comp_table" class="fade-in" style="width: 1000px;">
       </div>
-      <button id="table_download_button" class="btn-square-pop d-none"><i class="fas fa-download"></i></button>
+      <button id="table_download_button" class="btn-download d-none"><i class="fas fa-camera-retro"></i></button>
     </div>
   </div>
   <div class="row">
     <div class="col-sm-12">
       <div id="line_chart_main" style="width: 800px;">
         <canvas id="line_chart"></canvas>
-        <button id="download_button" class="btn-square-pop d-none"><i class="fas fa-download"></i></button>
+        <button id="download_button" class="btn-download d-none"><i class="fas fa-camera-retro"></i></button>
         <a id="download_link"></a>
       </div>
     </div>
@@ -19,7 +19,7 @@
     <div class="col-sm-12">
       <div style="width: 800px;">
         <canvas id="dividend_chart"></canvas>
-        <button id="download_button2" class="btn-square-pop d-none"><i class="fas fa-download"></i></button>
+        <button id="download_button2" class="btn-download d-none"><i class="fas fa-camera-retro"></i></button>
         <a id="download_link2"></a>
       </div>
     </div>
@@ -84,7 +84,13 @@ export default {
         })
 
         new Grid({
-          columns: ["team", "yesterday", "today", "difference", "profit and loss"],
+          columns: [
+            {name: "team", width: '320px'},
+            {name: "yesterday", width: '150px'},
+            {name: "today", width: '150px'},
+            {name: "difference", width: '190px'},
+            {name: "profit and loss", width: '190px'}
+          ],
           sort: true,
           data: table_data.data,
             style: {
@@ -106,7 +112,7 @@ export default {
         
         // グリッドの値が取得できない場合があるのでスリープ
         const _sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-        await _sleep(100);
+        await _sleep(300);
         // 前日比、当初比の色変更
         const comp_table_body = document.querySelectorAll("#comp_table tbody");
         for(let i = 0;i < comp_table_body[0].children.length;i++){
@@ -130,7 +136,11 @@ export default {
             comp_table_body[0].children[i].children[4].style.color = "green"
           }
         }
-
+        
+        // テーブルを表示
+        const comp_table = document.getElementById("comp_table")
+        comp_table.classList.remove('d-none');
+        
         const line_plugin = {
           beforeDraw: (chart) => {
             const ctx = chart.canvas.getContext('2d');
@@ -207,7 +217,7 @@ export default {
           new_div = document.getElementById(div_id);
           const dl_btn = document.createElement('button')
           dl_btn.id = dl_btn_id
-          dl_btn.setAttribute('class', 'btn-square-pop')
+          dl_btn.setAttribute('class', 'btn-download')
           new_div.appendChild(dl_btn);
           
           // 値を常に表示
@@ -244,7 +254,7 @@ export default {
           // DLの設定
           const btn = document.getElementById(dl_btn_id);
           const icon = document.createElement('i') // アイコンを設定
-          icon.setAttribute('class', 'fas fa-download')
+          icon.setAttribute('class', 'fas fa-camera-retro')
           btn.appendChild(icon);
           const pie_dl_link = document.getElementById('pie_dl_link');
           btn.addEventListener('click', function(){
@@ -252,9 +262,8 @@ export default {
             pie_dl_link.download = 'chart.png';
             pie_dl_link.click();
           });
-
         }
-          
+
         // ダウンロードボタン表示
         table_download_button.classList.remove('d-none');
         button.classList.remove('d-none');
@@ -273,21 +282,29 @@ export default {
 </script>
 
 <style>
-.btn-square-pop {
-  position: relative;
-  display: inline-block;
-  padding: 0.25em 0.5em;
-  text-decoration: none;
-  color: #FFF;
-  background: #fd9535;
-  border-bottom: solid 2px #d27d00;
-  border-radius: 4px;
-  box-shadow: inset 0 2px 0 rgba(255,255,255,0.2), 0 2px 2px rgba(0, 0, 0, 0.19);
-  font-weight: bold;
+.btn-download {
+  background-color: #000;
+  border: 1px solid #333;
+  color: #E2E0E7;
+  transition-duration: 0.5s;
+}
+.btn-download:hover {
+  background-color: #fff;
+  color: #000;
 }
 
-.btn-square-pop:active {
-  border-bottom: solid 2px #fd9535;
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.30);
+.fade-in{ 
+  animation-name: fadein;
+  animation-duration:2s; 
+}
+@keyframes fadein {
+  0% {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  100% {
+    opacity:1;
+    transform: translateY(0);
+  } 
 }
 </style>
