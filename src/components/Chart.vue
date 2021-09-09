@@ -1,9 +1,9 @@
 <template>
-  <div class="row">
-    <img src="@/assets/img/0title.png" class="fade-in" alt="0title">
+  <div class="custom-row">
+    <img src="@/assets/img/0title.png" class="img-width fade-in" alt="0title">
   </div>
-  <div class="row">
-    <img src="@/assets/img/1lists.png" class="fade-in" alt="1lists">
+  <div class="custom-row">
+    <img src="@/assets/img/1lists.png" class="img-width fade-in" alt="1lists">
   </div>
   <div class="row">
     <div class="col-sm-12">
@@ -12,8 +12,8 @@
       <button id="table_download_button" class="btn-download d-none"><i class="fas fa-camera-retro"></i></button>
     </div>
   </div>
-  <div class="row">
-    <img src="@/assets/img/2charts.png" class="fade-in" alt="2charts">
+  <div class="custom-row">
+    <img src="@/assets/img/2charts.png" class="img-width fade-in" alt="2charts">
   </div>
   <div class="row">
     <div class="col-sm-12">
@@ -24,8 +24,8 @@
       </div>
     </div>
   </div>
-  <div class="row">
-    <img src="@/assets/img/3graph.png" class="fade-in" alt="3graph">
+  <div class="custom-row">
+    <img src="@/assets/img/3graph.png" class="img-width fade-in" alt="3graph">
   </div>
   <div id="dividend_chart_main" class="row mt-2">
     <div class="col-sm-12">
@@ -36,8 +36,8 @@
       </div>
     </div>
   </div>
-  <div class="row">
-    <img src="@/assets/img/4portfolio.png" class="fade-in" alt="4portfolio">
+  <div class="custom-row">
+    <img src="@/assets/img/4portfolio.png" class="img-width fade-in" alt="4portfolio">
   </div>
   <div id="pie_chart_main" class="row mt-2">
     <a id="pie_dl_link"></a>
@@ -316,4 +316,16 @@ export default {
     transform: translateY(0);
   } 
 }
+
+.custom-row{
+  flex-shrink: 0;
+  padding-right: calc(var(--bs-gutter-x) * .5);
+  padding-left: calc(var(--bs-gutter-x) * .5);
+  margin-top: var(--bs-gutter-y);
+}
+
+.img-width {
+  width: 700px;
+}
+
 </style>
