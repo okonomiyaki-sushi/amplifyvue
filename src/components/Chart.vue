@@ -69,8 +69,8 @@ export default {
         // 前日比比較表
         const table_data = response.data.body.line_chart.data.datasets.reduce(function (accumulator, currentValue) {
           const first_value = Math.floor(currentValue.data[0])
-          const yesterday_value = Math.floor(currentValue.data.slice(-3)[0])
-          const today_value = Math.floor(currentValue.data.slice(-2)[0])
+          const yesterday_value = Math.floor(currentValue.data.slice(-2)[0])
+          const today_value = Math.floor(currentValue.data.slice(-1)[0])
           const difference = today_value - yesterday_value
           const comparison = Math.floor(((today_value / yesterday_value) - 1) * 10000) / 100
           const profit_and_loss = today_value - first_value
