@@ -7,6 +7,11 @@
   </div>
   <div class="row">
     <div class="col-sm-12">
+      <div class="text-center">
+        <div class="spinner-border text-info loading-image" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>
+      </div>
       <div id="comp_table" class="" style="width: 1000px;">
       </div>
       <button id="table_download_button" class="btn-download d-none"><i class="fas fa-camera-retro"></i></button>
@@ -17,6 +22,11 @@
   </div>
   <div class="row">
     <div class="col-sm-12">
+      <div class="text-center">
+        <div class="spinner-border text-info loading-image" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>
+      </div>
       <div id="line_chart_main" style="width: 1000px;">
         <canvas id="line_chart"></canvas>
         <button id="download_button" class="btn-download d-none"><i class="fas fa-camera-retro"></i></button>
@@ -29,6 +39,11 @@
   </div>
   <div id="dividend_chart_main" class="row mt-2">
     <div class="col-sm-12">
+      <div class="text-center">
+        <div class="spinner-border text-info loading-image" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>
+      </div>
       <div style="width: 1000px;">
         <canvas id="dividend_chart"></canvas>
         <button id="download_button2" class="btn-download d-none"><i class="fas fa-camera-retro"></i></button>
@@ -40,6 +55,11 @@
     <img src="@/assets/img/4portfolio.png" class="img-width fade-in" alt="4portfolio">
   </div>
   <div id="pie_chart_main" class="row mt-2">
+    <div class="text-center">
+      <div class="spinner-border text-info loading-image" role="status">
+        <span class="sr-only">Loading...</span>
+      </div>
+    </div>
     <a id="pie_dl_link"></a>
   </div>
 </template>
@@ -63,7 +83,7 @@ export default {
       const line_chart = document.getElementById("line_chart");
       
       // データ取得
-      const response = await axios.post("https://qylg.miruo.net/api");
+      const response = await axios.post("https://qylg.miruo.net/api", { timeout: 600000 });
       
       if(response.data.statusCode == 200){
         // 前日比比較表
@@ -114,6 +134,12 @@ export default {
             }
         }).render(document.getElementById("comp_table"));
         
+        // ローディング画像削除 
+        const loading_images = document.getElementsByClassName('loading-image');
+        for (var i = 0, len = loading_images.length; i < len; i++) {
+          loading_images[i].classList.remove('spinner-border');
+        }
+
         // グリッドの値が取得できない場合があるのでスリープ
         const _sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
         await _sleep(300);
@@ -124,20 +150,20 @@ export default {
           // 前日比
           if(columns[3].innerText.includes('+')){
             // プラスの場合
-            columns[3].style.color = "red"
+            columns[3].style.color = "green"
           }
           else{
             // マイナスの場合
-            columns[3].style.color = "green"
+            columns[3].style.color = "red"
           }
           // 当初比
           if(columns[4].innerText.includes('+')){
             // プラスの場合
-            columns[4].style.color = "red"
+            columns[4].style.color = "green"
           }
           else{
             // マイナスの場合
-            comp_table_body[0].children[i].children[4].style.color = "green"
+            comp_table_body[0].children[i].children[4].style.color = "red"
           }
         }
         
@@ -279,6 +305,7 @@ export default {
         table_download_button.classList.remove('d-none');
         button.classList.remove('d-none');
         button2.classList.remove('d-none');
+
         // 背景色変更
         document.getElementById('app').style.backgroundColor = '#14202B';
 
